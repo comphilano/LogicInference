@@ -1,7 +1,7 @@
 import re
-from formula import Formula
 from atom import Atom
-from atom import is_variable, is_question_variable
+from atom import is_variable, is_question_variable, unify
+from formula import Formula
 
 
 class KnowledgeBase:
@@ -16,77 +16,65 @@ class KnowledgeBase:
     def __getitem__(self, key):
         return self.formulas[key]
 
-    def tell(self, formula_str: str):
-        # Split an OR formula into Horn formulas
-        arrow_index = formula_str.find(':-')
-        or_formula_str = formula_str.replace(';', '.' + formula_str[:arrow_index + 2])
-        or_formula_str = or_formula_str.split('.')
-        for x in or_formula_str:
-            formula = Formula.from_str(x)
-            key = formula.conclusion.predicate
-            # If predicate already in dictionary, increase count
-            if key in self.pred_dict:
-                self.pred_dict[key][1] += 1
-            # Else insert first index to dictionary
-            else:
-                self.pred_dict[key] = [len(self.formulas), 1]
-            self.formulas.append(formula)
+    def tell(self, formula):
+        key = formula.conclusion.predicate
+        if key in self.pred_dict:
+            self.pred_dict[key].append(len(self.formulas))
+        else:
+            self.pred_dict[key] = [len(self.formulas)]
+        self.formulas.append(formula)
+
+    def tell_formulas(self, formulas):
+        for formula in formulas:
+            self.tell(formula)
 
     def __ask_questions(self, questions):
         # Initialise
         answers = []
-        first_question = questions[0]
-        remain_questions = questions[1:]
-        rule_index = self.pred_dict[first_question.predicate]
-        # Get all the rules that have same the predicate as the first question
-        rules = self.formulas[rule_index[0]:rule_index[0] + rule_index[1]]
+        rules = []
         found = False
 
+        if questions[0].predicate == 'equal':
+            questions.append(questions.pop(0))
+        first_question = questions[0]
+        remain_questions = questions[1:]
+
+        if first_question.predicate == 'equal':
+            if is_all_equal(first_question.terms):
+                found = True
+        if first_question.predicate in self.pred_dict:
+            # Get all the rules that have same the predicate as the first question
+            rule_indexes = self.pred_dict[first_question.predicate]
+            rules = [self.formulas[i] for i in rule_indexes]
         for rule in rules:
-            if rule.is_fact():
-                if first_question.is_ground():
-                    # If rule is a fact and the question is ground, check if they are identical
-                    if rule.conclusion.terms == first_question.terms:
-                        if not remain_questions:
-                            found = True
-                            break
-                        # If there are questions left, recursively ask them
-                        else:
-                            found, answers = self.__ask_questions(remain_questions)
-                            break
-                else:
-                    # Find substitute values for question
-                    sub_dict = first_question.unify(rule.conclusion)
-                    if sub_dict:
-                        new_questions = substitute(questions, sub_dict)
-                        flag, answer = self.__ask_questions(new_questions)
-                        if flag:
-                            found = True
-                            answers.extend(combine_answers(answer, sub_dict))
+            if rule.is_fact() and first_question.is_ground():
+                if rule.conclusion.terms == first_question.terms:
+                    found = True
+                    break
             else:
-                if first_question.is_ground():
-                    sub_questions = questions
-                else:
-                    # Change variables of question to avoid collision with rule variables
+                new_var = {}
+                if not rule.is_fact() and not first_question.is_ground():
                     new_var = get_new_var(questions)
-                    sub_questions = substitute(questions, new_var)
-                # Find substitute variables or values for rule
-                sub_dict = rule.conclusion.unify(sub_questions[0])
+                sub_questions = substitute(questions, new_var)
+                sub_dict = unify(rule.conclusion, sub_questions[0])
+                sub_questions = substitute(sub_questions, sub_dict)
                 if sub_dict:
-                    new_rule = rule.substitute(sub_dict)
-                    new_questions = []
-                    new_questions.extend(new_rule.premises)
+                    new_questions = rule.substitute(sub_dict).premises
                     new_questions.extend(sub_questions[1:])
-                    flag, answer = self.__ask_questions(new_questions)
+                    flag, answer = True, []
+                    if new_questions:
+                        flag, answer = self.__ask_questions(new_questions)
                     if flag:
                         found = True
                         answers.extend(combine_answers(answer, sub_dict))
         if first_question.negation:
             found = not found
+        if found and remain_questions and first_question.is_ground():
+            found, answers = self.__ask_questions(remain_questions)
         return found, answers
 
-    def ask(self, question_str: str):
-        questions = get_questions(question_str)
+    def ask(self, formula):
+        questions = formula.premises
         subs = get_question_var(questions)
         questions = substitute(questions, subs)
         flag, answers = self.__ask_questions(questions)
@@ -95,6 +83,14 @@ class KnowledgeBase:
         else:
             new_answers = change_answer_var(answers, subs)
             return new_answers
+
+
+def is_all_equal(l):
+    for i in range(len(l)):
+        for j in range(i + 1, len(l)):
+            if l[i] != l[j]:
+                return False
+    return True
 
 
 def is_ground_questions(questions):
@@ -160,6 +156,9 @@ def combine_answers(ans, sub_dict):
 
 def substitute(questions, subs_dict):
     new_quests = []
-    for question in questions:
-        new_quests.append(question.substitute(subs_dict))
+    if subs_dict:
+        for question in questions:
+            new_quests.append(question.substitute(subs_dict))
+    else:
+        new_quests = questions
     return new_quests

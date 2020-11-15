@@ -1,6 +1,3 @@
-from copy import deepcopy
-
-
 class Atom:
     negation: bool
     predicate: str
@@ -52,26 +49,31 @@ class Atom:
         return ground_flag
 
     def substitute(self, subs_dict):
-        atom = deepcopy(self)
-        for i in range(len(atom.terms)):
-            if atom.terms[i] in subs_dict:
-                atom.terms[i] = subs_dict[atom.terms[i]]
-        return atom
+        terms = []
+        for term in self.terms:
+            if term in subs_dict:
+                terms.append(subs_dict[term])
+            else:
+                terms.append(term)
+        return Atom(self.negation, self.predicate, terms)
 
-    def unify(self, other):
-        subs_dict = dict()
-        for i in range(len(self.terms)):
-            if is_variable(self.terms[i]):
-                subs_dict[self.terms[i]] = other.terms[i]
-            elif not is_variable(other.terms[i]) and self.terms[i] != other.terms[i]:
+
+def unify(a_1: Atom, a_2: Atom):
+    subs_dict = dict()
+    for i in range(len(a_1.terms)):
+        if is_variable(a_1.terms[i]):
+            subs_dict[a_1.terms[i]] = a_2.terms[i]
+        elif is_variable(a_2.terms[i]):
+            subs_dict[a_2.terms[i]] = a_1.terms[i]
+        else:
+            if a_1.terms[i] != a_2.terms[i]:
                 subs_dict.clear()
                 break
-        return subs_dict
-
+    return subs_dict
 
 def is_variable(term: str):
     flag = False
-    if term[-1] == '?' or (term[0].isalpha() and term[0] == term[0].upper()):
+    if term[0] == '_' or term[-1] == '?' or (term[0].isalpha() and term[0] == term[0].upper()):
         flag = True
     return flag
 

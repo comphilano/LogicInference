@@ -1,28 +1,26 @@
+from formula import Formula
 from knowledge_base import KnowledgeBase
 
 
-def get_kb_from_file(filename):
+def get_formulas_from_file(filename):
+    """
+    Get formulas from file.\n
+    Formulas are written in Prolog syntax and should not
+    include any comparision operators like ==, \\\==, ...
+    Those operators should be represent as
+
+    :param filename:
+    :return:
+    """
     with open(filename, 'r') as kb_file:
         data = kb_file.read()
     data = data.replace('\n', '')
-    kb_str = data.split('.')
-    kb_str.pop()
-    base = KnowledgeBase()
-    for formula_str in kb_str:
-        base.tell(formula_str)
-    return base
-
-
-def get_question_from_file(filename):
-    with open(filename, 'r') as q_file:
-        data = q_file.read()
-    data = data.replace('\n', '')
-    q_str = data.split('.')
-    q_str.pop()
-    quests = []
-    for quest in q_str:
-        quests.append(quest)
-    return quests
+    for_str = data.split('.')
+    for_str.pop()
+    formulas = []
+    for s in for_str:
+        formulas.extend(Formula.parse(s))
+    return formulas
 
 
 def print_answers(answers):
@@ -39,11 +37,12 @@ def print_answers(answers):
             print()
 
 
-kb = get_kb_from_file('kb.pl')
-questions = get_question_from_file('question.pl')
+formulas = get_formulas_from_file('kb2.pl')
+questions = get_formulas_from_file('question2.pl')
+kb = KnowledgeBase()
+kb.tell_formulas(formulas)
+
 for question in questions:
     print(question)
     print_answers(kb.ask(question))
     print()
-# ans = kb.ask('?- \+ child(X, Y).')
-# print_answers(ans)

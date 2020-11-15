@@ -24,3 +24,4 @@ sibling(X, Y) :- parent(Z, X), parent(Z, Y).
 niece(X, Y) :-  parent(Z, X), sibling(Z, Y), female(X).
 grandparent(X, Y) :- parent(X, Z), parent(Z, Y).
 uncle(X, Y) :- husband(X, Z), sibling(Z, T), parent(T, Y).
+same_parent(X, Y) :- \+ equal(X, Y), parent(Z, X), parent(Z, Y).

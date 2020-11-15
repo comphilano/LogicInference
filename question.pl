@@ -10,3 +10,4 @@
 ?- married(X, "Prince Phillips").
 ?- married("Princess Anne", "Timothy Laurence").
 ?- \+ married("Princess Anne", "Timothy Laurence").
+?- same_parent("Prince Charles", "Princess Anne").
