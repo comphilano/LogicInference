@@ -1,4 +1,14 @@
+import re
+
+
 class Atom:
+    """
+    Data structure of atomic formula (atom): is a formula with
+    no deeper propositional structure, that is, a formula that
+    contains no logical connectives or equivalently a formula
+    that has no strict sub-formulas.\n
+    E.g. parent(X, Y), child(a, b)
+    """
     negation: bool
     predicate: str
     terms: list
@@ -9,30 +19,58 @@ class Atom:
         self.terms = terms
 
     @classmethod
-    def from_str(cls, atom_str):
+    def from_str(cls, atom_str: str):
+        """
+        Creates an atom from string, the atom string should be
+        written in Prolog syntax.
+
+        :param atom_str: str - an atom string
+        :return: Atom
+        """
         negation = False
-        predicate = None
-        terms = []
-        atom_str = atom_str.replace("'", '"')
-        open_prt_index = atom_str.find('(')
-        close_prt_index = atom_str.find(')')
-        if open_prt_index != -1 and close_prt_index != -1:
-            head = atom_str[:open_prt_index]
-            negation_index = head.find('\\+')
-            if negation_index == -1:
-                negation = False
-                predicate = head.strip()
-            else:
-                negation = True
-                predicate = head[negation_index + 2:].strip()
-            terms_str = atom_str[open_prt_index + 1:close_prt_index].split(',')
-            terms = [x.strip() for x in terms_str]
+        operator = is_comparison_formula(atom_str)
+        if operator is not None:
+            predicate = operator
+            terms = [x.strip() for x in atom_str.split(operator)]
+        else:
+            atom = re.findall(r'(\\\+)?([\w\s]+)\(([^)]+)\)', atom_str)
+            if not atom:
+                raise ValueError('Invalid formula')
+            negation = atom[0][0].strip() == '\\+'
+            predicate = atom[0][1].strip()
+            terms = [x.strip() for x in atom[0][2].split(',')]
         return cls(negation, predicate, terms)
+
+    def eval_cmp(self):
+        """
+        Evaluates comparison of two terms if the atom is relational formula.
+
+        :return: bool - Results of the comparison
+        """
+        if not self.is_cmp_atom():
+            raise ValueError('This is not a comparison atom.')
+        if not self.is_ground():
+            raise TypeError('Arguments are not sufficiently instantiated.')
+        if self.predicate == '\\==':
+            op = '!='
+        else:
+            op = self.predicate
+        try:
+            res = eval('float(self.terms[0])' + op + 'float(self.terms[1])')
+        except ValueError:
+            res = eval('self.terms[0]' + op + 'self.terms[1]')
+        return res
 
     def __eq__(self, other):
         return self.negation == other.negation \
                and self.predicate == other.predicate \
                and self.terms == other.terms
+
+    def __ne__(self, other):
+        return not self == other
+
+    def is_cmp_atom(self):
+        return is_comparison_formula(self.predicate)
 
     def __str__(self):
         s = ''
@@ -41,6 +79,12 @@ class Atom:
         return s + self.predicate + '(' + ', '.join(self.terms) + ')'
 
     def is_ground(self):
+        """
+        Check if atom is ground, a ground atom is an atom without
+        free variables. In other words, its terms are instantiated.
+
+        :return: bool - True if the atom is ground
+        """
         ground_flag = True
         for term in self.terms:
             if is_variable(term):
@@ -49,6 +93,12 @@ class Atom:
         return ground_flag
 
     def substitute(self, subs_dict):
+        """
+        Substitute variables with their mapping values.
+
+        :param subs_dict: dict - A map from old variables to new values
+        :return: Atom - An atom with their variables substituted
+        """
         terms = []
         for term in self.terms:
             if term in subs_dict:
@@ -58,18 +108,26 @@ class Atom:
         return Atom(self.negation, self.predicate, terms)
 
 
-def unify(a_1: Atom, a_2: Atom):
+def unify(atom_1: Atom, atom_2: Atom):
+    """
+    Unify two atoms if possible.
+
+    :param atom_1: Atom - first_atom
+    :param atom_2: Atom - second_atom
+    :return: dict - A map of variables so that two atoms become identical.
+    """
     subs_dict = dict()
-    for i in range(len(a_1.terms)):
-        if is_variable(a_1.terms[i]):
-            subs_dict[a_1.terms[i]] = a_2.terms[i]
-        elif is_variable(a_2.terms[i]):
-            subs_dict[a_2.terms[i]] = a_1.terms[i]
+    for i in range(len(atom_1.terms)):
+        if is_variable(atom_1.terms[i]):
+            subs_dict[atom_1.terms[i]] = atom_2.terms[i]
+        elif is_variable(atom_2.terms[i]):
+            subs_dict[atom_2.terms[i]] = atom_1.terms[i]
         else:
-            if a_1.terms[i] != a_2.terms[i]:
+            if atom_1.terms[i] != atom_2.terms[i]:
                 subs_dict.clear()
                 break
     return subs_dict
+
 
 def is_variable(term: str):
     flag = False
@@ -80,3 +138,13 @@ def is_variable(term: str):
 
 def is_question_variable(term: str):
     return term[-1] == '?'
+
+
+def is_comparison_formula(s: str):
+    res = None
+    cmp_op = ['\\==', '==', '>=', '>', '<=', '<']
+    for op in cmp_op:
+        if s.find(op) != -1:
+            res = op
+            break
+    return res

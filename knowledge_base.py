@@ -1,6 +1,5 @@
 import re
-from atom import Atom
-from atom import is_variable, is_question_variable, unify
+from atom import Atom, is_variable, is_question_variable, unify
 from formula import Formula
 
 
@@ -34,14 +33,16 @@ class KnowledgeBase:
         rules = []
         found = False
 
-        if questions[0].predicate == 'equal':
+        if questions[0].is_cmp_atom():
             questions.append(questions.pop(0))
         first_question = questions[0]
         remain_questions = questions[1:]
 
-        if first_question.predicate == 'equal':
-            if is_all_equal(first_question.terms):
-                found = True
+        if first_question.is_cmp_atom():
+            try:
+                found = first_question.eval_cmp()
+            except TypeError:
+                found = False
         if first_question.predicate in self.pred_dict:
             # Get all the rules that have same the predicate as the first question
             rule_indexes = self.pred_dict[first_question.predicate]
@@ -162,3 +163,17 @@ def substitute(questions, subs_dict):
     else:
         new_quests = questions
     return new_quests
+
+
+def print_answers(answers):
+    if type(answers) == bool:
+        print(answers)
+    else:
+        for answer in answers:
+            first = True
+            for key in answer:
+                if not first:
+                    print(', ', end='')
+                first = False
+                print(key + ' = ' + answer[key], end='')
+            print()

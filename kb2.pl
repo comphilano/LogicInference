@@ -696,54 +696,54 @@ truong_thuoc(_truong, _tochuc):-
     truc_thuoc(_truong, _tochuc).
 
 nganh_cung_khoa(_nganh01, _nganh02) :-
-    \+ equal(_nganh01, _nganh02),
+    _nganh01 \== _nganh02,
     nganh(_nganh01),
     nganh(_nganh02),
     truc_thuoc(_nganh01, _khoa01),
     truc_thuoc(_nganh02, _khoa02),
     khoa(_khoa01),
     khoa(_khoa02),
-    equal(_khoa01, _khoa02).
+    _khoa01 == _khoa02.
 
 chuyen_nganh_cung_nganh(_chuyenNganh01, _chuyenNganh02):-
-    \+ equal(_chuyenNganh01, _chuyenNganh02),
+    _chuyenNganh01 \== _chuyenNganh02,
     chuyen_nganh(_chuyenNganh01),
     chuyen_nganh(_chuyenNganh02),
     truc_thuoc(_chuyenNganh01, _nganh01),
     truc_thuoc(_chuyenNganh02, _nganh02),
-    equal(_nganh01, _nganh02).
+    _nganh01 == _nganh02.
 
 giang_vien_cung_bo_mon(_giangVien1, _giangVien2):-
-    \+ equal(_giangVien1, _giangVien2),
+    _giangVien1 \== _giangVien2,
     giang_vien(_giangVien1),
     giang_vien(_giangVien2),
     giang_vien_thuoc_bo_mon(_giangVien1, _boMon1),
     giang_vien_thuoc_bo_mon(_giangVien2, _boMon2),
-    equal(_boMon1, _boMon2).
+    _boMon1 == _boMon2.
 
 giang_vien_cung_khoa(_giangVien1, _giangVien2):-
-    \+ equal(_giangVien1, _giangVien2),
+    _giangVien1 \== _giangVien2,
     giang_vien(_giangVien1),
     giang_vien(_giangVien2),
     giang_vien_thuoc_khoa(_giangVien1, _khoa1),
     giang_vien_thuoc_khoa(_giangVien2, _khoa2),
-    equal(_khoa1, _khoa2).
+    _khoa1 == _khoa2.
 
 giang_vien_cung_truong(_giangVien1, _giangVien2):-
-    \+ equal(_giangVien1, _giangVien2),
+    _giangVien1 \== _giangVien2,
     giang_vien(_giangVien1),
     giang_vien(_giangVien2),
     giang_vien_thuoc_truong(_giangVien1, _truong1),
     giang_vien_thuoc_truong(_giangVien2, _truong2),
-    equal(_truong1, _truong2).
+    _truong1 == _truong2.
 
 bo_mon_cung_khoa(_boMon1, _boMon2):-
-    \+ equal(_boMon1, _boMon2),
+    _boMon1 \== _boMon2,
     bo_mon(_boMon1),
     bo_mon(_boMon2),
     bo_mon_thuoc_khoa(_boMon1, _khoa1),
     bo_mon_thuoc_khoa(_boMon2, _khoa2),
-    equal(_khoa1, _khoa2).
+    _khoa1 == _khoa2.
 
 giao_su_lam_truong_khoa(_giangVien):-
     giang_vien(_giangVien),
