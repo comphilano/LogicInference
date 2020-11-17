@@ -22,7 +22,9 @@ class HornClause:
 
     def __str__(self):
         if self.conclusion:
-            s = str(self.conclusion) + ' :- '
+            s = str(self.conclusion)
+            if self.premises:
+                s += ' :- '
         else:
             s = '?- '
         s += ', '.join([str(x) for x in self.premises]) + '.'
