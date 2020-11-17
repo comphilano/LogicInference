@@ -21,7 +21,11 @@ class HornClause:
         self.premises = premises
 
     def __str__(self):
-        s = self.conclusion.__str__() + ' :- ' + ', '.join([x.__str__() for x in self.premises]) + '.'
+        if self.conclusion:
+            s = str(self.conclusion) + ' :- '
+        else:
+            s = '?- '
+        s += ', '.join([str(x) for x in self.premises]) + '.'
         return s
 
     @classmethod

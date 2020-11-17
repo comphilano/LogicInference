@@ -170,18 +170,20 @@ def combine_solutions(sol, sub_dict):
     return solutions
 
 
-def print_solutions(solutions):
+def str_solutions(solutions):
     if type(solutions) == bool:
-        print(solutions)
+        s = str(solutions) + '\n'
     else:
+        s = ''
         for solution in solutions:
             first = True
             for key in solution:
                 if not first:
-                    print(', ', end='')
+                    s += ', '
                 first = False
-                print(key + ' = ' + solution[key], end='')
-            print()
+                s += str(key) + ' = ' + str(solution[key])
+            s += '\n'
+    return s
 
 
 def create_kb(filename):
