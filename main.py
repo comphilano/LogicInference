@@ -1,12 +1,10 @@
-from formula import get_formulas_from_file
-from knowledge_base import KnowledgeBase, print_answers
+from hornclause import HornClause
+from knowledge_base import create_kb, print_solutions
 
 
-formulas = get_formulas_from_file('kb2.pl')
-questions = get_formulas_from_file('question2.pl')
-kb = KnowledgeBase()
-kb.tell_formulas(formulas)
-for question in questions:
-    print(question)
-    print_answers(kb.ask(question))
-    print()
+filename = input('Input knowledge-base file: ')
+kb = create_kb(filename)
+while True:
+    clause_str = ':-' + input('?- ')
+    clause = HornClause.from_str(clause_str)
+    print_solutions(kb.ask(clause))

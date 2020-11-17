@@ -6,8 +6,9 @@
 :- niece("Zara Phillips", "Prince Charles").
 :- uncle(X, "Prince Harry").
 :- uncle(X, "Prince Harry"), grandparent("Queen Elizabeth II", Z).
-:- grandparent("Queen Elizabeth II", Z), uncle(X:, "Prince Harry").
+:- grandparent("Queen Elizabeth II", Z), uncle(X, "Prince Harry").
 :- married(X, "Prince Phillips").
 :- married("Princess Anne", "Timothy Laurence").
 :- \+ married("Princess Anne", "Timothy Laurence").
-:- same_parent("Prince Charles", "Princess Anne").
+:- same_parent("Prince Harry", "Princess Anne").
+:- greater(khoa, X).

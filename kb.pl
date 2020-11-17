@@ -5,6 +5,8 @@ parent("Queen Elizabeth II", "Prince Edward").
 parent("Princess Anne", "Zara Phillips").
 parent("Prince Charles", "Prince Harry").
 parent("Prince Phillips", "Prince Charles").
+age(khoa, 6).
+age(trung, 7).
 male("Prince Charles").
 male("Prince Harry").
 male("Timothy Laurence").
@@ -25,3 +27,4 @@ niece(X, Y) :-  parent(Z, X), sibling(Z, Y), female(X).
 grandparent(X, Y) :- parent(X, Z), parent(Z, Y).
 uncle(X, Y) :- husband(X, Z), sibling(Z, T), parent(T, Y).
 same_parent(X, Y) :- X \== Y, parent(Z, X), parent(Z, Y).
+greater(X, Y) :- age(X, Z1), age(Y, Z2), Z1 > Z2.

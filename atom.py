@@ -3,7 +3,7 @@ import re
 
 class Atom:
     """
-    Data structure of atomic formula (atom): is a formula with
+    Atomic formula (atom) is a formula with
     no deeper propositional structure, that is, a formula that
     contains no logical connectives or equivalently a formula
     that has no strict sub-formulas.\n
@@ -18,6 +18,20 @@ class Atom:
         self.predicate = predicate
         self.terms = terms
 
+    def __str__(self):
+        s = ''
+        if self.negation:
+            s = '\\+ '
+        return s + self.predicate + '(' + ', '.join(self.terms) + ')'
+
+    def __eq__(self, other):
+        return self.negation == other.negation \
+               and self.predicate == other.predicate \
+               and self.terms == other.terms
+
+    def __ne__(self, other):
+        return not self == other
+
     @classmethod
     def from_str(cls, atom_str: str):
         """
@@ -27,8 +41,9 @@ class Atom:
         :param atom_str: str - an atom string
         :return: Atom
         """
+        atom_str = atom_str.replace("'", '"')
         negation = False
-        operator = is_comparison_formula(atom_str)
+        operator = is_cmp_str(atom_str)
         if operator is not None:
             predicate = operator
             terms = [x.strip() for x in atom_str.split(operator)]
@@ -61,22 +76,15 @@ class Atom:
             res = eval('self.terms[0]' + op + 'self.terms[1]')
         return res
 
-    def __eq__(self, other):
-        return self.negation == other.negation \
-               and self.predicate == other.predicate \
-               and self.terms == other.terms
-
-    def __ne__(self, other):
-        return not self == other
+    def get_variables(self):
+        var = set({})
+        for term in self.terms:
+            if is_variable(term):
+                var.add(term)
+        return var
 
     def is_cmp_atom(self):
-        return is_comparison_formula(self.predicate)
-
-    def __str__(self):
-        s = ''
-        if self.negation:
-            s = '\\+ '
-        return s + self.predicate + '(' + ', '.join(self.terms) + ')'
+        return is_cmp_str(self.predicate)
 
     def is_ground(self):
         """
@@ -94,7 +102,7 @@ class Atom:
 
     def substitute(self, subs_dict):
         """
-        Substitute variables with their mapping values.
+        Substitute variables with their values in dictionary
 
         :param subs_dict: dict - A map from old variables to new values
         :return: Atom - An atom with their variables substituted
@@ -110,11 +118,11 @@ class Atom:
 
 def unify(atom_1: Atom, atom_2: Atom):
     """
-    Unify two atoms if possible.
+    Returns a dict that maps variables of two atoms so that they become identical.
 
     :param atom_1: Atom - first_atom
     :param atom_2: Atom - second_atom
-    :return: dict - A map of variables so that two atoms become identical.
+    :return: dict
     """
     subs_dict = dict()
     for i in range(len(atom_1.terms)):
@@ -136,11 +144,11 @@ def is_variable(term: str):
     return flag
 
 
-def is_question_variable(term: str):
+def is_query_variable(term: str):
     return term[-1] == '?'
 
 
-def is_comparison_formula(s: str):
+def is_cmp_str(s: str):
     res = None
     cmp_op = ['\\==', '==', '>=', '>', '<=', '<']
     for op in cmp_op:
