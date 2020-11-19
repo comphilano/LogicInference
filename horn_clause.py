@@ -80,11 +80,11 @@ class HornClause:
     def is_rule(self):
         return self.conclusion is not None and self.premises
 
-    def is_goal(self):
-        return self.conclusion is None and self.premises and not self.get_variables()
+    #def is_goal(self):
+    #    return self.conclusion is None and self.premises and not self.get_variables()
 
     def is_query(self):
-        return self.conclusion is None and self.premises and self.get_variables()
+        return self.conclusion is None and self.premises
 
     def is_nothing(self):
         return self.conclusion is None and not self.premises

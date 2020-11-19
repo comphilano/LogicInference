@@ -1,4 +1,5 @@
 import sys
+from atom import Atom
 from horn_clause import HornClause, get_clauses_from_file
 from knowledge_base import KnowledgeBase, create_kb, to_str
 
@@ -9,7 +10,7 @@ if __name__ == "__main__":
         with open(sys.argv[3], 'w') as out_file:
             for query in queries:
                 out_file.write(str(query) + '\n')
-                out_file.write(to_str(kb.ask(query, find_all=True)) + '\n\n')
+                out_file.write(to_str(kb.ask(query)) + '\n\n')
     # Demo
     else:
         # All men are mortal.
@@ -20,13 +21,14 @@ if __name__ == "__main__":
         query = ':- mortal("Socrates").'
 
         premise_clauses = [HornClause.from_str(x) for x in premises]
-        query_clause = HornClause.from_str(query)
         kb = KnowledgeBase(premise_clauses)
+        query_clause = HornClause.from_str(query)
 
         # Yes, he is.
         response = kb.ask(query_clause)[0]
         assert response
 
         # This is how it works
-        argument = kb.make_argument(query_clause)
+        conclusion = 'mortal("Socrates")'
+        argument = kb.make_argument(Atom.from_str(conclusion))
         print(argument)

@@ -21,7 +21,7 @@ class KnowledgeBase:
 
     def get_clauses(self, p):
         """
-        Find all clauses that have same the predicate as p.
+        Find all clauses that have predicate p.
 
         :param p: predicate
         :return: list - List of clauses
@@ -57,33 +57,32 @@ class KnowledgeBase:
         for clause in clauses:
             self.tell(clause)
 
-    def __ask_recursive(self, goal_query, find_all=False):
+    def __ask_recursive(self, query, find_all=False):
         """
         Recursively querying a clause.\n
         Idea: A clause with n premises is satisfied if the first premise of clause
         is in knowledge-base and a clause contains n - 1 premises (not included first one)
         is satisfied.
 
-        :param goal_query:
-        :param find_all: goal or query
+        :param query:
+        :param find_all: find all solutions if True
         :return: tuple - found is True if found a solution, solutions is a list of satisfied variables
         """
         # Initialise
         solutions = []
-        known_clauses = []
         found = False
 
         # Put all comparison premises to the back of premise list.
         # Because comparison only works when all variables are
         # instantiated.
-        for i in range(len(goal_query.premises)):
-            if goal_query.premises[i].is_cmp_atom():
-                goal_query.premises.append(goal_query.premises.pop(0))
+        for i in range(len(query.premises)):
+            if query.premises[i].is_cmp_atom():
+                query.premises.append(query.premises.pop(0))
             else:
                 break
 
-        first_premise = goal_query.premises[0]
-        remain_goal_query = HornClause(None, goal_query.premises[1:])
+        first_premise = query.premises[0]
+        remain_query = HornClause(None, query.premises[1:])
 
         # Evaluate comparison premise.
         if first_premise.is_cmp_atom():
@@ -104,61 +103,68 @@ class KnowledgeBase:
             else:
                 # Change variables if necessary to avoid collision of variable names
                 if not known_clause.is_fact() and not first_premise.is_ground():
-                    new_var = get_new_var(goal_query)
-                    substituted_goal_query = goal_query.substitute(new_var)
+                    new_var = get_new_var(query)
+                    substituted_query = query.substitute(new_var)
                 else:
-                    substituted_goal_query = goal_query
+                    substituted_query = query
 
-                sub_dict = unify(known_clause.conclusion, substituted_goal_query.premises[0])
-                substituted_goal_query = substituted_goal_query.substitute(sub_dict)
-                # Constructs new goal_query clause with variables substituted and ask that clause.
-                if sub_dict:
-                    new_premises = known_clause.substitute(sub_dict).premises
-                    new_premises.extend(substituted_goal_query.premises[1:])
-                    new_goal_query = HornClause(None, new_premises)
+                var_dict = unify(known_clause.conclusion, substituted_query.premises[0])
+                # Constructs new query clause with variables substituted and ask that clause.
+                if var_dict:
+                    substituted_query = substituted_query.substitute(var_dict)
+                    new_premises = known_clause.substitute(var_dict).premises
+                    new_premises.extend(substituted_query.premises[1:])
+                    new_query = HornClause(None, new_premises)
                     flag, solution = True, []
-                    if new_goal_query.is_query() or new_goal_query.is_goal():
-                        flag, solution = self.__ask_recursive(new_goal_query, find_all)
+                    if new_query.is_query():
+                        flag, solution = self.__ask_recursive(new_query, find_all)
                     if flag:
                         found = True
-                        solutions.extend(combine_solutions(solution, sub_dict))
+                        solutions.extend(combine_solutions(solution, var_dict))
                         if not find_all:
                             break
         if first_premise.negation:
             found = not found
-        if found and first_premise.is_ground() and not remain_goal_query.is_nothing():
-            found, solutions = self.__ask_recursive(remain_goal_query, find_all)
+        if found and first_premise.is_ground() and not remain_query.is_nothing():
+            found, solutions = self.__ask_recursive(remain_query, find_all)
         return found, solutions
 
-    def ask(self, clause: HornClause, find_all=False):
+    def ask(self, clause: HornClause):
         found = False
         solutions = []
-        if clause.is_goal():
-            found, solutions = self.__ask_recursive(clause)
-        elif clause.is_query():
-            var = clause.get_variables()
-            # Change variables name to get solution according to those variables
-            subs_dict = {v: v + '?' for v in var}
-            clause = clause.substitute(subs_dict)
-            found, solutions = self.__ask_recursive(clause, find_all=find_all)
-            if found:
-                # Change back variables name
-                solutions = change_solution_var(solutions, subs_dict)
+        var = clause.get_variables()
+        if var:
+            find_all = True
+        else:
+            find_all = False
+        # Change variables name to get solution according to those variables
+        subs_dict = {v: v + '?' for v in var}
+        clause = clause.substitute(subs_dict)
+        found, solutions = self.__ask_recursive(clause, find_all=find_all)
+        if found:
+            # Change back variables name
+            solutions = change_solution_var(solutions, subs_dict)
         return found, solutions
 
-    def make_argument(self, clause: HornClause):
-        s = ''
-        if not (clause.is_goal() and len(clause.premises) == 1):
+    def make_argument(self, conclusion: Atom):
+        """
+        Constructs an argument that leads to conclusion.
+
+        :param conclusion: Atom - conclusion
+        :return: str - string that describes argument
+        """
+        if not (conclusion.is_ground()):
             raise ValueError('Invalid conclusion')
         else:
-            if self.ask(clause)[0]:
-                premise = clause.premises[0]
-                known_clauses = self.get_clauses(premise.predicate)
+            query_conclusion_str = ':-' + str(conclusion) + '.'
+            if self.ask(HornClause.from_str(query_conclusion_str))[0]:
+                s = ''
+                known_clauses = self.get_clauses(conclusion.predicate)
                 for known_clause in known_clauses:
-                    subs_dict = unify(known_clause.conclusion, premise)
+                    subs_dict = unify(known_clause.conclusion, conclusion)
                     if subs_dict:
-                        x = known_clause.substitute(subs_dict)
-                        query = HornClause(None, x.premises)
+                        substituted_clause = known_clause.substitute(subs_dict)
+                        query = HornClause(None, substituted_clause.premises)
                         found, solutions = self.ask(query)
                         if found:
                             if solutions:
@@ -168,8 +174,10 @@ class KnowledgeBase:
                             for p in substituted_query.premises:
                                 s += str(p) + '.\n'
                             s += str(known_clause) + '\n'
-                            s += '\u2234 ' + str(premise)
+                            s += '\u2234 ' + str(conclusion)
                             break
+            else:
+                s = 'Argument does not exist.'
         return s
 
 
