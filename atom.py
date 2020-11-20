@@ -41,6 +41,7 @@ class Atom:
         :param atom_str: str - an atom string
         :return: Atom
         """
+        atom_str = atom_str.strip()
         atom_str = atom_str.replace("'", '"')
         negation = False
         operator = is_cmp_str(atom_str)
@@ -50,7 +51,7 @@ class Atom:
         else:
             atom = re.findall(r'(\\\+)?([\w\s]+)\(([^)]+)\)', atom_str)
             if not atom:
-                raise ValueError('Invalid formula')
+                raise ValueError('Invalid atom: ' + atom_str)
             negation = atom[0][0].strip() == '\\+'
             predicate = atom[0][1].strip()
             terms = [x.strip() for x in atom[0][2].split(',')]

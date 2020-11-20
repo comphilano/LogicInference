@@ -120,7 +120,10 @@ class KnowledgeBase:
                         flag, solution = self.__ask_recursive(new_query, find_all)
                     if flag:
                         found = True
-                        solutions.extend(combine_solutions(solution, var_dict))
+                        new_solutions = combine_solutions(solution, var_dict)
+                        for s in new_solutions:
+                            if s not in solutions:
+                                solutions.append(s)
                         if not find_all:
                             break
         if first_premise.negation:

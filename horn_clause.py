@@ -159,7 +159,7 @@ def get_clauses_from_file(filename):
     :param filename: str - Name of the file
     :return: list - A list of clauses
     """
-    with open(filename, 'r') as kb_file:
+    with open(filename, 'r', encoding='utf8') as kb_file:
         data = kb_file.read()
     data = data.replace('\n', '')
     clause_str = [x + '.' for x in data.split('.')]
