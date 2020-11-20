@@ -40,6 +40,9 @@ class HornClause:
         """
         if clause_str[-1] != '.' or clause_str.find(';') != -1:
             raise ValueError('Invalid clause.')
+        if clause_str.find('%') != -1:
+            return None
+        clause_str = clause_str.replace('?-', ':-')
         conclusion_str, premises_str = split_clause(clause_str)
         premises = []
         conclusion = None
@@ -48,23 +51,6 @@ class HornClause:
         for p in premises_str:
             premises.append(Atom.from_str(p))
         return cls(conclusion, premises)
-
-    @staticmethod
-    def parse(clause_str):
-        """
-        Parse a clause string into clauses
-
-        :param clause_str:
-        :return: list - List of clauses
-        """
-        if clause_str[-1] != '.':
-            raise ValueError('Invalid clause.')
-        clauses = []
-        if clause_str.find('%') == -1:
-            new_clause_str = split_or_clause(clause_str)
-            for for_str in new_clause_str:
-                clauses.append(HornClause.from_str(for_str))
-        return clauses
 
     def get_variables(self):
         var = set({})
@@ -103,22 +89,6 @@ class HornClause:
         for premise in self.premises:
             premises.append(premise.substitute(subs_dict))
         return HornClause(conclusion, premises)
-
-
-def split_or_clause(or_clause_str):
-    """
-    Split a clause that has disjunctive premises into clauses
-    that has only conjunctive premises (Horn clauses).
-
-    :param or_clause_str:
-    :return: list of Horn
-    """
-    horn_clauses_str = or_clause_str
-    if or_clause_str.find(';'):
-        arrow_index = or_clause_str.find(':-')
-        horn_clauses_str = or_clause_str.replace(';', '.' + or_clause_str[:arrow_index + 2])
-    horn_clauses = [x + '.' for x in horn_clauses_str.split('.') if x]
-    return horn_clauses
 
 
 def split_clause(clause_str: str):
@@ -166,6 +136,8 @@ def get_clauses_from_file(filename):
     clause_str.pop()
     clauses = []
     for s in clause_str:
-        clauses.extend(HornClause.parse(s))
+        horn = HornClause.from_str(s)
+        if horn:
+            clauses.append(horn)
     return clauses
 

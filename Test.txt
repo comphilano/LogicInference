@@ -1,46 +1,46 @@
 %Ai là người đã ly hôn với Prince Charles?.
-:-divorced(X, prince_charles).
+?-divorced(X, prince_charles).
 %Ai là chồng của Princess Anne?.
-:-husband(X, princess_anne).
+?-husband(X, princess_anne).
 %Ai là vợ của Prince William?.
-:-wife(X, prince_william).
+?-wife(X, prince_william).
 %Ai là cha của Prince Edward?.
-:-father(X, prince_edward).
+?-father(X, prince_edward).
 %Ai là mẹ của Prince Andrew?.
-:-mother(X, prince_andrew).
+?-mother(X, prince_andrew).
 %Ai là con trai của Kate Middleton?.
-:-son(X, kate_middleton).
+?-son(X, kate_middleton).
 %Ai là con gái của Peter Phillips?.
-:-daughter(X, peter_phillips).
+?-daughter(X, peter_phillips).
 %Ai là bà của James Viscount Severn?.
-:-grandmother(X, james_viscount_severn).
+?-grandmother(X, james_viscount_severn).
 %Ai là ông của Mia Grace Tindall?.
-:-grandfather(X, mia_grace_tindall).
+?-grandfather(X, mia_grace_tindall).
 %Ai là cháu trai của Princess Anne?.
-:-grandson(X, princess_anne).
+?-grandson(X, princess_anne).
 %Ai là cháu gái của Princess Diana?.
-:-granddaughter(X, princess_diana).
+?-granddaughter(X, princess_diana).
 %Ai là anh trai của Zara Phillips?.
-:-brother(X, zara_phillips).
+?-brother(X, zara_phillips).
 %Ai là anh chị em ruột của Prince George?.
-:-sibling(X, prince_george).
+?-sibling(X, prince_george).
 %Ai là dì của Princess Eugenie?.
-:-aunt(X, princess_eugenie).
+?-aunt(X, princess_eugenie).
 %Ai là chú của Isla Phillips?.
-:-uncle(X, isla_phillips).
+?-uncle(X, isla_phillips).
 %Nữ hoàng Elizabeth II có phải là vợ của Prince Phillip không?.
-:-wife(queen_elizabeth_ii, prince_phillip).
+?-wife(queen_elizabeth_ii, prince_phillip).
 %Timothy Laurence có phải là cha của Mike Tindall không?.
-:-father(timothy_laurence, mike_tindall).
+?-father(timothy_laurence, mike_tindall).
 %Princess Diana có phải là dì của Kate Middleton không?.
-:-aunt(princess_diana, kate_middleton).
+?-aunt(princess_diana, kate_middleton).
 %Princess Diana có phải là dì của Prince William không?.
-:-aunt(princess_diana, prince_william).
+?-aunt(princess_diana, prince_william).
 %Prince Edward có phải là chú của Mike Tindall không?.
-:-uncle(prince_edward, mike_tindall).
+?-uncle(prince_edward, mike_tindall).
 %Sarah Ferguson có phải là dì của Princess Beatrice không?.
-:-aunt(sarah_ferguson, princess_beatrice).
+?-aunt(sarah_ferguson, princess_beatrice).
 %Autumn Kelly có phải là mẹ của Isla Phillips không?.
-:-mother(autumn_kelly, isla_phillips).
+?-mother(autumn_kelly, isla_phillips).
 %Princess Beatrice và Princess Eugenie có phải anh chị em ruột không?.
-:-sibling(princess_beatrice, princess_eugenie).
+?-sibling(princess_beatrice, princess_eugenie).
